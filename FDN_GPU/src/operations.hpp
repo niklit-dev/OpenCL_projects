@@ -1,5 +1,5 @@
 #pragma once
-//#define __CL_HAS_ANON_STRUCT__
+
 #include <CL/cl.hpp>
 #include <type_traits>
 #include <iostream>
@@ -11,16 +11,9 @@
 template <typename T>
 void printTable(const T *mas, const int row, const int col);
 
-/*
-Создание перегруженных вариантов функций при помощи при помощи возвращаемого типа
-или дополнительного неиспользуемого параметра в виде указателя на nullptr:
-https://ru.cppreference.com/w/cpp/types/enable_if
-*/
-
 //--------------------------------------------------------------------------------//
 //                                cl_float2 traits                                //
 //--------------------------------------------------------------------------------//
-// SFINAE to cl_float2
 template<typename T>
 struct is_float2 {
 	static constexpr bool value = false;
@@ -134,7 +127,7 @@ template <typename T, typename Th>
 void conv(T* y, const T *x, const Th *h, const int Np, const int NFil,
           const int Ndn, const int Pol, const int Mf)
 {
-    int L = Np + NFil - 1; // Количество отсчетов на выходе фильтра
+    int L = Np + NFil - 1; 
     for (int dn = 0; dn < Ndn; ++dn) {
         for (int n = 0; n < Np + NFil - 1; ++n) {
             for (int m = 0; m < NFil; ++m) {
@@ -154,7 +147,6 @@ void conv(T* y, const T *x, const Th *h, const int Np, const int NFil,
 template <typename T>
 void Multipl(T* w, const float* delay, const int Ndn, const int Nch)
 {
-    // Цикл поэлементного перемножения матриц
     for(int i=0;i<Ndn*Nch;i++)
     {
         w[i] = mult(w[i], delay[i]);
@@ -170,25 +162,22 @@ void fdn(T* y, const T *x, const Th *h, const T *w, const float *delay, const in
          const int Npol, const int Ndn, const int Nch, const int Nfil, const int Nm,
          const int Npoint, const int Dmax, const T zero)
 {
-    // Массив для промежуточных значений вычислений
+    
     T *mas_mul = new T[Npol*Ndn*Npoint+Dmax*128];
     T *inw = new T[Ndn*Nch];
     for(int i=0; i<Ndn*Nch; i++)
     {
         inw[i] = w[i];
     }
-    // Цикл по порядку полинома
+    
     for(int m=0;m<Nm;m++)
     {
         for(int p=0;p<Npol;p++)
-        {
-            // Перемножаем входные данные на матрицу коэффициентов
+        {      
             matrixMult(Npoint, Nch, Ndn, Dmax, p, x, D, inw, mas_mul, zero);
-
-            // Свертка с коэффициентами
             conv(y, mas_mul, h, Npoint, Nfil, Ndn, p, m);
         }
-        // Домножаем коэффициенты на задержки
+        
         Multipl(inw, delay, Ndn, Nch);
     }
 }
@@ -202,10 +191,8 @@ void printVal(const cl_float2 val, int prec = 3)
     std::cout.precision(prec);
     std::cout << "(" << std::setw(prec+3) <<
                  val.x <<
-//                 val.s[0] <<
                  std::flush << ", "
               << std::setw(prec+3) << val.y
-//              << std::setw(prec+3) << val.s[1]
               << ")"<< std::flush;
 }
 
@@ -239,7 +226,7 @@ void printTable(const T *mas, const int row, const int col)
 //--------------------------------------------------------------------------------//
 
 //--------------------------------------------------------------------------------//
-//                    Функция чтения из файла входных данных                      //
+//                                  Read from file                                //
 //--------------------------------------------------------------------------------//
 template<typename T>
 void readFromFile(const char* fileName, T* mas, const int len)
@@ -252,7 +239,7 @@ void readFromFile(const char* fileName, T* mas, const int len)
 	}
     else
         {
-            // Запись данных в массив
+            // Г‡Г ГЇГЁГ±Гј Г¤Г Г­Г­Г»Гµ Гў Г¬Г Г±Г±ГЁГў
             for(int i = 0; i < len; i++)
             {
                 fin >> mas[i];
@@ -263,7 +250,7 @@ void readFromFile(const char* fileName, T* mas, const int len)
 //--------------------------------------------------------------------------------//
 
 //--------------------------------------------------------------------------------//
-//                     Заполнение комплексных чисел из файла                      //
+//                           Read complex data from file                          //
 //--------------------------------------------------------------------------------//
 cl_float2 *readFromFileComp(const char* fileNameRe, const char* fileNameIm,
                             const int len)
@@ -307,11 +294,11 @@ int compare(const T *mas1, const T *mas2, const int len)
 //--------------------------------------------------------------------------------//
 
 //--------------------------------------------------------------------------------//
-//                         Запись кода кернела в строку                           //
+//                                    Read file                                   //
 //--------------------------------------------------------------------------------//
 std::string fileRead(const char *fileName) {
     std::ifstream srcfile(fileName);
-    srcfile.unsetf(std::ios::skipws); // Отключение пропуска пробельных символов
+    srcfile.unsetf(std::ios::skipws); 
     std::string src((std::istreambuf_iterator<char>(srcfile)),
                     (std::istreambuf_iterator<char>()));
     return src;
